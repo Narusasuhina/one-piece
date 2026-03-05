@@ -3,13 +3,13 @@ import feedparser
 import time
 import os
 
-# === CONFIG ===
-WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
+# ================= CONFIG =================
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL")  # Must be set in Render/GitHub
 RSS_FEED = "https://onepiece.fandom.com/wiki/Special:RecentChanges?feed=rss"
 SEEN_FILE = "seen.txt"
-CHECK_INTERVAL = 3600  # seconds between checks (1 hour)
+CHECK_INTERVAL = 3600  # seconds between feed checks (1 hour)
 
-# === LOAD AND SAVE SEEN LINKS ===
+# ================ LOAD / SAVE SEEN LINKS ================
 def load_seen():
     if os.path.exists(SEEN_FILE):
         with open(SEEN_FILE, "r", encoding="utf-8") as f:
@@ -20,19 +20,19 @@ def save_seen(seen):
     with open(SEEN_FILE, "w", encoding="utf-8") as f:
         f.write("\n".join(seen))
 
-# === CHECK RSS FEED AND POST EMBEDS ===
+# ================= CHECK RSS FEED =================
 def check_feed():
     seen = load_seen()
     feed = feedparser.parse(RSS_FEED)
     new_seen = set(seen)
 
-    for entry in feed.entries[:5]:  # Only check the latest 5 entries
+    for entry in feed.entries[:5]:  # Only check latest 5 entries
         if entry.link not in seen:
             embed = {
                 "title": entry.title.upper(),
                 "url": entry.link,
                 "description": "⚓ THE GREAT ERA OF PIRATES CONTINUES!!",
-                "color": 0xFF0000,  # Red color for the embed
+                "color": 0xFF0000,  # Red color
                 "footer": {"text": "One Piece Wiki Updates 🏴‍☠️"}
             }
             payload = {"embeds": [embed]}
@@ -45,11 +45,11 @@ def check_feed():
                 print("Error sending webhook:", e)
 
             new_seen.add(entry.link)
-            time.sleep(2)  # avoid hitting rate limits
+            time.sleep(2)  # small delay to avoid rate limits
 
     save_seen(new_seen)
 
-# === MAIN LOOP ===
+# ================= MAIN LOOP =================
 if __name__ == "__main__":
     print("🚀 One Piece RSS Bot started!")
     while True:
